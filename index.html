@@ -206,6 +206,7 @@
 
     async function askAI(question) {
       try {
+        // الرابط الجديد تبع السيرفر على Render
         const res = await fetch('https://aqari-xx5p.onrender.com/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -315,4 +316,3 @@
   </script>
 </body>
 </html>
-
