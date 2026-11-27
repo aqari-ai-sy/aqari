@@ -23,7 +23,7 @@ app.post('/api/chat', async (req, res) => {
         },
         { role: "user", content: message }
       ],
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
     });
 
     res.json({ reply: chatCompletion.choices[0]?.message?.content || 'ما وصلني جواب' });
