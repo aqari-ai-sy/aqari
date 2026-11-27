@@ -14,13 +14,13 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: var(--font-body); background: var(--bg-deep); color: var(--text-primary); line-height: 1.7; overflow-x: hidden; }
-    
+
     /* Navbar */
     .navbar { position: fixed; top: 0; width: 100%; z-index: 1000; background: rgba(11,15,14,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-glass); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; }
     .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; color: var(--gold); }
     .logo-icon { width: 35px; height: 35px; background: linear-gradient(135deg, var(--gold), var(--emerald)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
     .menu-btn { background: none; border: 1px solid var(--border-glass); color: white; padding: 8px 12px; border-radius: 8px; font-size: 1.2rem; cursor: pointer; }
-    
+
     /* Sidebar */
     .sidebar { position: fixed; top: 0; right: -280px; width: 280px; height: 100%; background: rgba(11,15,14,0.98); backdrop-filter: blur(20px); border-left: 1px solid var(--border-glass); z-index: 2000; transition: 0.3s; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
     .sidebar.open { right: 0; }
@@ -52,7 +52,7 @@
     .message.user .message-content { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.2); }
     .message.assistant .message-content { background: var(--bg-glass); border: 1px solid var(--border-glass); }
     .message-content strong { color: var(--gold); }
-    
+
     .chat-input-wrapper { display: flex; gap: 8px; align-items: center; }
     .attach-btn { background: none; border: 1px solid var(--border-glass); border-radius: 10px; width: 45px; height: 45px; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; transition: 0.3s; flex-shrink: 0; }
     .attach-btn:hover { color: var(--gold); border-color: var(--gold); }
@@ -84,6 +84,51 @@
     .rate-box { text-align: center; margin: 20px 0; }
     .rate-value { font-size: 3rem; font-family: var(--font-display); color: var(--emerald); }
     .rate-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; }
+
+    /* Floating WhatsApp Button */
+    .whatsapp-float {
+      position: fixed;
+      bottom: 25px;
+      left: 25px;
+      width: 60px;
+      height: 60px;
+      background: #25D366;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: white;
+      text-decoration: none;
+      box-shadow: 0 4px 15px rgba(37,211,102,0.4);
+      z-index: 999;
+      transition: all 0.3s ease;
+      animation: pulse 2s infinite;
+    }
+    .whatsapp-float:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(37,211,102,0.6);
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 4px 15px rgba(37,211,102,0.4); }
+      50% { box-shadow: 0 4px 15px rgba(37,211,102,0.7), 0 0 0 10px rgba(37,211,102,0.1); }
+      100% { box-shadow: 0 4px 15px rgba(37,211,102,0.4); }
+    }
+
+    /* Footer */
+    .site-footer {
+      text-align: center;
+      padding: 20px 20px 30px;
+      margin-top: 20px;
+      border-top: 1px solid var(--border-glass);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+    }
+    .site-footer .dev-name {
+      color: var(--gold);
+      font-weight: 700;
+    }
 
     @media (max-width: 768px) { .section { padding-top: 80px; } }
   </style>
@@ -126,7 +171,7 @@
       <h2>المستشار العقاري الذكي</h2>
       <p>اسأل عن أي قانون عقاري سوري وسأجيبك فوراً.</p>
       <div class="chat-messages" id="chatMessages"></div>
-      
+
       <div id="whatsappAd" style="display: none; padding: 12px; margin-bottom: 15px; background: rgba(37,211,102,0.1); border: 1px solid #25D366; border-radius: 10px; text-align: center;">
         <h4 style="color: #25D366; margin-bottom: 5px;">📢 انضم لقناتنا</h4>
         <a href="https://whatsapp.com/channel/0029VbE5gYMG3R3qbeGbhy3V" target="_blank" style="display: inline-block; padding: 8px 16px; background: #25D366; color: #000; text-decoration: none; border-radius: 5px; font-weight: bold;">متابعة الواتساب</a>
@@ -204,13 +249,21 @@
     </div>
   </section>
 
+  <!-- Floating WhatsApp Button -->
+  <a href="https://wa.me/963950509594" target="_blank" class="whatsapp-float" aria-label="تواصل عبر واتساب">💬</a>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    صُمّم وطُوّر بواسطة <span class="dev-name">رضى تمام الكيلاني</span>
+  </footer>
+
   <script>
     // ===== إعدادات عامة =====
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     let aiReplyCount = 0;
-    let base64Image = null; 
+    let base64Image = null;
 
     // ===== Sidebar =====
     function toggleMenu() {
@@ -258,7 +311,7 @@
     // ===== Chat =====
     window.addEventListener('load', () => {
       addMessage('assistant', 'مرحباً بك في **عقاري AI** 👋\n\nأنا مستشارك القانوني العقاري. كيف يمكنني مساعدتك اليوم؟');
-      fetchLiraScopeRate(); 
+      fetchLiraScopeRate();
     });
 
     async function askAI(question, image) {
@@ -272,21 +325,21 @@
         if (data.error) throw new Error(data.error);
         return data.reply;
       } catch (error) {
-        return '⚠️ تعذر الاتصال بالمستشار. تأكد من تشغيل السيرفر.';
+        return '⚠️ حدثت مشكلة، جرب مرة أخرى. وفي حال استمرار المشكلة يرجى التواصل مع المطور من قسم "تواصل معنا".';
       }
     }
 
     function addMessage(role, text) {
       const msg = document.createElement('div');
       msg.className = `message ${role}`;
-      
+
       if (role === 'assistant' && !text.includes('مرحباً بك في')) {
         aiReplyCount++;
         if (aiReplyCount === 2) {
           showFullAd();
         }
       }
-      
+
       const avatar = document.createElement('div');
       avatar.className = 'avatar';
       avatar.textContent = role === 'user' ? '👤' : '⚖️';
@@ -313,9 +366,9 @@
     async function sendMessage() {
       const text = chatInput.value.trim();
       if (!text && !base64Image) return;
-      
+
       addMessage('user', text || "📷 صورة مرفقة");
-      
+
       chatInput.value = '';
       const imgToSend = base64Image;
       base64Image = null;
@@ -324,9 +377,9 @@
 
       sendBtn.disabled = true;
       showTyping();
-      
+
       const reply = await askAI(text, imgToSend);
-      
+
       hideTyping();
       addMessage('assistant', reply);
       sendBtn.disabled = false;
@@ -354,23 +407,23 @@
       const rateEl = document.getElementById('dollarRate');
       const timeEl = document.getElementById('rateTime');
       const sourceEl = document.getElementById('rateSource');
-      
+
       rateEl.textContent = 'جاري التحديث...';
-      
+
       try {
         const res = await fetch('https://lirascope.syria-cloud.sy/api/v1/rates?source=market');
         if (!res.ok) throw new Error('فشل الاتصال');
-        
+
         const data = await res.json();
         const usd = data.USD || data.usd;
-        
+
         if (usd && usd.sell) {
           rateEl.textContent = parseInt(usd.sell).toLocaleString() + ' ل.س';
           sourceEl.textContent = 'المصدر: LiraScope (سعر السوق)';
         } else {
           throw new Error('بيانات غير متوقعة');
         }
-        
+
         timeEl.textContent = new Date().toLocaleTimeString('ar-SY');
       } catch (e) {
         console.error(e);
