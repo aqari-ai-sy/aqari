@@ -52,9 +52,18 @@
     .message.user .message-content { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.2); }
     .message.assistant .message-content { background: var(--bg-glass); border: 1px solid var(--border-glass); }
     .message-content strong { color: var(--gold); }
-    .chat-input-wrapper { display: flex; gap: 10px; }
+    
+    .chat-input-wrapper { display: flex; gap: 8px; align-items: center; }
+    .attach-btn { background: none; border: 1px solid var(--border-glass); border-radius: 10px; width: 45px; height: 45px; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; transition: 0.3s; flex-shrink: 0; }
+    .attach-btn:hover { color: var(--gold); border-color: var(--gold); }
     .chat-input { flex: 1; padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border-glass); background: var(--bg-glass); color: white; font-family: var(--font-body); resize: none; }
-    .send-btn { width: 45px; height: 45px; border-radius: 10px; border: none; background: var(--gold); cursor: pointer; font-size: 1.2rem; color: black; }
+    .send-btn { width: 45px; height: 45px; border-radius: 10px; border: none; background: var(--gold); cursor: pointer; font-size: 1.2rem; color: black; flex-shrink: 0; }
+    #imagePreview { max-width: 100px; border-radius: 8px; display: none; margin-bottom: 5px; }
+
+    /* Full Screen Ad */
+    .full-ad { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 20px; }
+    .full-ad.show { display: flex; }
+    .ad-timer { font-size: 1.2rem; color: var(--gold); margin-top: 20px; font-weight: bold; }
 
     /* Forms */
     .form-group { margin-bottom: 15px; text-align: right; }
@@ -79,6 +88,13 @@
   </style>
 </head>
 <body>
+
+  <!-- Full Screen Ad -->
+  <div class="full-ad" id="fullScreenAd">
+    <h2 style="color: var(--gold); font-family: var(--font-display);">📢 إعلان مميز</h2>
+    <p style="margin-top: 20px; max-width: 400px;">هذا الإعلان يغطي الشاشة ويختفي تلقائياً بعد 5 ثواني. يمكنك هنا وضع رابط قناتك أو أي إعلان تريده.</p>
+    <div class="ad-timer" id="adTimer">يختفي بعد 5 ثواني...</div>
+  </div>
 
   <!-- Sidebar -->
   <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
@@ -108,11 +124,17 @@
       <h2>المستشار العقاري الذكي</h2>
       <p>اسأل عن أي قانون عقاري سوري وسأجيبك فوراً.</p>
       <div class="chat-messages" id="chatMessages"></div>
+      
       <div id="whatsappAd" style="display: none; padding: 12px; margin-bottom: 15px; background: rgba(37,211,102,0.1); border: 1px solid #25D366; border-radius: 10px; text-align: center;">
         <h4 style="color: #25D366; margin-bottom: 5px;">📢 انضم لقناتنا</h4>
         <a href="https://whatsapp.com/channel/0029VbE5gYMG3R3qbeGbhy3V" target="_blank" style="display: inline-block; padding: 8px 16px; background: #25D366; color: #000; text-decoration: none; border-radius: 5px; font-weight: bold;">متابعة الواتساب</a>
       </div>
+
+      <img id="imagePreview" src="" alt="Preview">
+
       <div class="chat-input-wrapper">
+        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+        <button class="attach-btn" onclick="document.getElementById('imageInput').click()">📎</button>
         <textarea id="chatInput" class="chat-input" rows="1" placeholder="اكتب سؤالك هنا..."></textarea>
         <button class="send-btn" onclick="sendMessage()" id="sendBtn">➤</button>
       </div>
@@ -184,6 +206,7 @@
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     let aiReplyCount = 0;
+    let base64Image = null; 
 
     // ===== Sidebar =====
     function toggleMenu() {
@@ -198,19 +221,48 @@
       toggleMenu();
     }
 
+    // ===== Full Screen Ad Logic =====
+    function showFullAd() {
+      const ad = document.getElementById('fullScreenAd');
+      const timerEl = document.getElementById('adTimer');
+      ad.classList.add('show');
+      let timeLeft = 5;
+      const interval = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = `يختفي بعد ${timeLeft} ثواني...`;
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          ad.classList.remove('show');
+        }
+      }, 1000);
+    }
+
+    // ===== Image Handling =====
+    function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        base64Image = e.target.result;
+        const preview = document.getElementById('imagePreview');
+        preview.src = base64Image;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+
     // ===== Chat =====
     window.addEventListener('load', () => {
       addMessage('assistant', 'مرحباً بك في **عقاري AI** 👋\n\nأنا مستشارك القانوني العقاري. كيف يمكنني مساعدتك اليوم؟');
-      fetchLiraScopeRate(); // جلب السعر عند التحميل
+      fetchLiraScopeRate(); 
     });
 
-    async function askAI(question) {
+    async function askAI(question, image) {
       try {
-        // الرابط الجديد تبع السيرفر على Render
         const res = await fetch('https://aqari-xx5p.onrender.com/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: question })
+          body: JSON.stringify({ message: question, image: image })
         });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
@@ -223,10 +275,15 @@
     function addMessage(role, text) {
       const msg = document.createElement('div');
       msg.className = `message ${role}`;
+      
+      // إعلان ملء الشاشة بعد الرد التاني
       if (role === 'assistant' && !text.includes('مرحباً بك في')) {
         aiReplyCount++;
-        if (aiReplyCount === 2) document.getElementById('whatsappAd').style.display = 'block';
+        if (aiReplyCount === 2) {
+          showFullAd();
+        }
       }
+      
       const avatar = document.createElement('div');
       avatar.className = 'avatar';
       avatar.textContent = role === 'user' ? '👤' : '⚖️';
@@ -252,12 +309,21 @@
 
     async function sendMessage() {
       const text = chatInput.value.trim();
-      if (!text) return;
-      addMessage('user', text);
+      if (!text && !base64Image) return;
+      
+      addMessage('user', text || "📷 صورة مرفقة");
+      
       chatInput.value = '';
+      const imgToSend = base64Image;
+      base64Image = null;
+      document.getElementById('imagePreview').style.display = 'none';
+      document.getElementById('imageInput').value = '';
+
       sendBtn.disabled = true;
       showTyping();
-      const reply = await askAI(text);
+      
+      const reply = await askAI(text, imgToSend);
+      
       hideTyping();
       addMessage('assistant', reply);
       sendBtn.disabled = false;
@@ -280,7 +346,7 @@
       document.getElementById('claddingResult').classList.add('show');
     }
 
-    // ===== LiraScope Exchange Rate (Market) =====
+    // ===== LiraScope Exchange Rate =====
     async function fetchLiraScopeRate() {
       const rateEl = document.getElementById('dollarRate');
       const timeEl = document.getElementById('rateTime');
@@ -289,12 +355,10 @@
       rateEl.textContent = 'جاري التحديث...';
       
       try {
-        // LiraScope API - سعر السوق
         const res = await fetch('https://lirascope.syria-cloud.sy/api/v1/rates?source=market');
         if (!res.ok) throw new Error('فشل الاتصال');
         
         const data = await res.json();
-        // الـ API بيرجع هيكل زي: { "USD": { "sell": 15000, "buy": 14800 } }
         const usd = data.USD || data.usd;
         
         if (usd && usd.sell) {
@@ -307,7 +371,6 @@
         timeEl.textContent = new Date().toLocaleTimeString('ar-SY');
       } catch (e) {
         console.error(e);
-        // في حال فشل الاتصال، نعرض سعر تقريبي (تقدر تعدله يدوياً)
         rateEl.textContent = '15,000 ل.س (تقريبي)';
         sourceEl.textContent = 'تعذر الجلب التلقائي - يرجى التحديث لاحقاً';
         timeEl.textContent = new Date().toLocaleTimeString('ar-SY');
