@@ -23,7 +23,7 @@ app.post('/api/chat', async (req, res) => {
         },
         { role: "user", content: message }
       ],
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
     });
 
     res.json({ reply: chatCompletion.choices[0]?.message?.content || 'ما وصلني جواب' });
