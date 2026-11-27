@@ -31,7 +31,7 @@ app.post('/api/chat', async (req, res) => {
         },
         { role: "user", content: userContent }
       ],
-      model: image ? "llama-3.2-11b-vision-preview" : "openai/gpt-oss-120b",
+      model: image ? "llama-3.2-90b-vision-preview" : "openai/gpt-oss-120b",
     });
 
     res.json({ reply: chatCompletion.choices[0]?.message?.content || 'ما وصلني جواب' });
